@@ -26,13 +26,15 @@ router.get('/', user_jwt , async(req, res, next) => {
 })
 
 router.post('/register', async (req, res, next) => {
-   const {username, mobile, password, gender, age} = req.body;
+   const {usertype ,username, mobile, password, gender, bmdcNo, department, degree, medical, visit, age} = req.body;
 
    try {
 
-      let user_exist = await User.findOne ({mobile : mobile});
+      let user_exist = await User.findOne({mobile : mobile});
+      //let user_patient = await User.find({usertype:"Patient"});
+      let user_doctor = await User.find({usertype:"Doctor"});
       if (user_exist){
-         res.json({
+         return res.json({
             success: false,
             msg: 'User already exists'
          });
@@ -40,16 +42,39 @@ router.post('/register', async (req, res, next) => {
 
       let user = new User();
 
+      if(usertype == "Patient"){
+
+         user.usertype = usertype;   
+         user.username = username;
+         user.mobile = mobile;
+   
+         const salt = await bcryptjs.genSalt(10) ;
+         user.password = await bcryptjs.hash(password, salt);
+   
+         user.gender = gender;
+         user.age = age;
+         await user.save();
+      }
+
+      else if (usertype == "Doctor"){
+         
+      user.usertype = usertype;   
       user.username = username;
       user.mobile = mobile;
-      
+
       const salt = await bcryptjs.genSalt(10) ;
       user.password = await bcryptjs.hash(password, salt);
 
       user.gender = gender;
-      user.age = age;
+      user.bmdcNo = bmdcNo;
+      user.department = department;
+      user.degree = degree;
+      user.medical = medical;
+      user.visit = visit;
 
       await user.save();
+
+      }
 
       const payload = {
          user: {
@@ -111,7 +136,8 @@ router.post('/login', async (req, res, next) => {
             success: true,
             msg: 'User logged in',
             token: token,
-            user: user
+            user: user,
+           
          });
       });
 
