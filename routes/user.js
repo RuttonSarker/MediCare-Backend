@@ -5,7 +5,7 @@ const bcryptjs = require ('bcryptjs');
 const { model } = require('mongoose');
 const user_jwt = require ('../middleware/user_jwt');
 const jwt = require('jsonwebtoken');
-const { findById } = require('../models/User');
+const { findById, findOne, find } = require('../models/User');
 
 router.get('/', user_jwt , async(req, res, next) => {
    try {
@@ -32,7 +32,7 @@ router.post('/register', async (req, res, next) => {
 
       let user_exist = await User.findOne({mobile : mobile});
       //let user_patient = await User.find({usertype:"Patient"});
-      let user_doctor = await User.find({usertype:"Doctor"});
+      //let user_doctor = await User.find({usertype:"Doctor"});
       if (user_exist){
          return res.json({
             success: false,
@@ -98,18 +98,22 @@ router.post('/register', async (req, res, next) => {
 });
 
 router.post('/login', async (req, res, next) => {
+
+   const usertype = req.body.usertype;
    const mobile = req.body.mobile;
    const password = req.body.password;
 
    try {
+
       let user = await User.findOne({
-         mobile: mobile
+         usertype:usertype, mobile: mobile, 
       });
 
+   
       if(!user) {
          return res.status(400).json({
             success: false,
-            msg: 'User not exist. Register to continue'
+            msg: 'User not exist ! '
          });
       }
 
@@ -137,6 +141,7 @@ router.post('/login', async (req, res, next) => {
             msg: 'User logged in',
             token: token,
             user: user,
+            usertype: usertype          
            
          });
       });
